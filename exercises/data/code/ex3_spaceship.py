@@ -128,7 +128,15 @@ def run():
                         "Figura 6 — FoodCourt antes e depois do pré-processamento, treino",
                         "imputado, log(1 + x) e padronizado")
 
+    # Comparação: gastos imputados e padronizados SEM log(1 + x). Só mede o efeito do log;
+    # não entra na matriz final.
+    medians = dict(zip(NUMERIC, prep.num_imputer.statistics_))
+    raw_spend = X_train[SPEND].fillna({col: medians[col] for col in SPEND})
+    z_without_log = (raw_spend - raw_spend.mean()) / raw_spend.std(ddof=0)
+
     checks = {
+        "max_z_without_log_train": {c: float(z_without_log[c].max()) for c in SPEND},
+        "share_abs_above_3_without_log_train": float((z_without_log.abs() > 3).to_numpy().mean()),
         "nan_train": int(Xtr.isna().sum().sum()),
         "nan_test": int(Xte.isna().sum().sum()),
         "shape_train": list(Xtr.shape),
