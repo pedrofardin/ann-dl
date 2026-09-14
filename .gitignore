@@ -4,3 +4,7 @@ env/
 .vscode/
 target/
 __pycache__/
+.DS_Store
+/train.csv
+/test.csv
+/sample_submission.csv
