@@ -1,6 +1,6 @@
 ---
 exercise: data
-ai_use: "Claude (Claude Code, Anthropic) gerou o código em code/, as figuras e o primeiro rascunho das análises a partir do enunciado. Eu revisei, executei e ajustei o texto final, e consigo explicar cada passo."
+ai_use: "Claude (Claude Code, Anthropic) gerou o código em code/, as figuras e o rascunho das análises."
 ---
 
 # 1. Data
