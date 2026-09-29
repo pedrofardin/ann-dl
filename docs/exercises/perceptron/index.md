@@ -1,6 +1,6 @@
 ---
 exercise: perceptron
-ai_use: "Claude (Claude Code, Anthropic) gerou o código em code/, as figuras e o rascunho das análises."
+ai_use: "Claude (Claude Code, Anthropic) gerou o código em code/, as figuras e o texto das análises; revisei e conferi os resultados."
 ---
 
 # 2. Perceptron
@@ -149,15 +149,22 @@ zero:
 | 25 | **1** |
 | 26 | **0** — parada |
 
-Das 2000 amostras de cada época, no máximo 4 geram atualização. A curva da Figura 3 sobe em
-zigue-zague porque cada época visita primeiro os 1000 pontos da classe 0 e depois os 1000 da
-classe 1: a primeira metade empurra a reta para um lado, e a segunda para o outro.
+Das 2000 amostras de cada época, no máximo 4 geram atualização. Separei cada época em duas
+metades: primeiro os 1000 pontos da classe 0, depois os 1000 da classe 1. Nas épocas 1 a 24, a
+metade da classe 0 faz de 1 a 3 atualizações, e a metade da classe 1 faz **sempre exatamente 1**.
+Essa última atualização empurra a reta em direção à classe 0. Por isso, no fim de cada uma dessas
+épocas, **todos** os erros são falsos positivos (pontos da classe 0 previstos como 1), e não há
+nenhum falso negativo. O zigue-zague da Figura 3 é o tamanho desse empurrão, que varia de época
+para época: no fim da época 8 sobram 289 falsos positivos (85.55%), e no fim da época 9 sobram 799
+(60.05%). Na época 25, a metade da classe 1 não erra mais, e a reta fica no vão entre as nuvens.
 
 **Por que 26 épocas, e não 1 ou 2?** O limite é o $b$. A reta final fica a
 $-b / \lVert \mathbf{w} \rVert = 4.30$ da origem. Com $\lVert \mathbf{w} \rVert = 0.058$, isso pede
-$b = -0.25$. Cada erro move $b$ só $\eta = 0.01$, e os erros das duas classes empurram $b$ em
-sentidos opostos. O saldo foi de 49 erros na classe 0 e 24 na classe 1: 25 passos líquidos de
-$-0.01$, cerca de um por época. Esse mesmo efeito, $b$ lento e $\mathbf{w}$ rápido, é o que quebra o
+$b = -0.25$. Cada erro move $b$ só $\eta = 0.01$, enquanto move $\mathbf{w}$
+$\eta\,\lVert \mathbf{x} \rVert$, cerca de 2 a 7 vezes mais. E os erros das duas classes empurram $b$
+em sentidos opostos: em cada época, a metade da classe 0 tira de 0.01 a 0.03 de $b$, e a metade da
+classe 1 devolve 0.01. O saldo foi de 49 erros na classe 0 e 24 na classe 1: 25 passos líquidos de
+$-0.01$, de 0 a 2 por época. Esse mesmo efeito, $b$ lento e $\mathbf{w}$ rápido, é o que quebra o
 Exercise 2.
 
 **Re-execução com $\eta = 1.0$** (mesmos dados, mesma ordem, mesmo $\mathbf{w}_0$):
@@ -188,8 +195,8 @@ de $\eta$ sozinho não importa. O que importa é o tamanho de $\eta\,\mathbf{x}$
 $\mathbf{w}_0$:
 
 - com $\eta = 1.0$, cada erro soma um vetor de norma típica 2 (classe 0) a 7 (classe 1) a um
-  $\mathbf{w}_0$ de norma 0.0093. A inicialização some. Prova disso: esta execução faz as mesmas 101 atualizações e as
-  mesmas 37 épocas da execução que parte de $\mathbf{w} = \mathbf{0}$ com $\eta = 1.0$. Os pesos
+  $\mathbf{w}_0$ de norma 0.0093. A inicialização some. Prova disso: esta execução faz as mesmas
+  101 atualizações e as mesmas 37 épocas da execução que parte de $\mathbf{w} = \mathbf{0}$ com $\eta = 1.0$. Os pesos
   finais diferem exatamente por $\mathbf{w}_0$:
   $[5.87062,\ 3.35924] - [5.86808,\ 3.35029] = [0.00253,\ 0.00895] = \mathbf{w}_0$;
 - com $\eta = 0.01$, cada erro soma um vetor de norma típica 0.02 a 0.07, do mesmo tamanho que
@@ -211,26 +218,30 @@ $$
 \mathbf{w}_t^{(2)} = k\,\mathbf{w}_t^{(1)}, \qquad b_t^{(2)} = k\,b_t^{(1)}.
 $$
 
-- **Base ($t = 0$):** $\mathbf{w}_0^{(1)} = \mathbf{w}_0^{(2)} = \mathbf{0}$ e $b_0^{(1)} = b_0^{(2)} = 0$.
-  Como $\mathbf{0} = k \cdot \mathbf{0}$, a hipótese vale.
-- **Passo:** na amostra $t + 1$, com entrada $\mathbf{x}$ e rótulo $y$,
+**Base ($t = 0$):** $\mathbf{w}_0^{(1)} = \mathbf{w}_0^{(2)} = \mathbf{0}$ e $b_0^{(1)} = b_0^{(2)} = 0$.
+Como $\mathbf{0} = k \cdot \mathbf{0}$, a hipótese vale.
 
-  $$
-  \hat{y}^{(2)} = \text{step}\big(\mathbf{w}_t^{(2)} \cdot \mathbf{x} + b_t^{(2)}\big)
-  = \text{step}\big(k\,(\mathbf{w}_t^{(1)} \cdot \mathbf{x} + b_t^{(1)})\big)
-  = \text{step}\big(\mathbf{w}_t^{(1)} \cdot \mathbf{x} + b_t^{(1)}\big) = \hat{y}^{(1)},
-  $$
+**Passo:** na amostra $t + 1$, com entrada $\mathbf{x}$ e rótulo $y$,
 
-  porque $k > 0$ não muda o sinal ($kz \geq 0 \iff z \geq 0$, inclusive em $z = 0$). Então o erro
-  $e = y - \hat{y}$ é o mesmo nas duas execuções, e
+$$
+\begin{aligned}
+\hat{y}^{(2)} &= \text{step}\big(\mathbf{w}_t^{(2)} \cdot \mathbf{x} + b_t^{(2)}\big)
+= \text{step}\big(k\,(\mathbf{w}_t^{(1)} \cdot \mathbf{x} + b_t^{(1)})\big) \\
+&= \text{step}\big(\mathbf{w}_t^{(1)} \cdot \mathbf{x} + b_t^{(1)}\big) = \hat{y}^{(1)},
+\end{aligned}
+$$
 
-  $$
-  \mathbf{w}_{t+1}^{(2)} = k\,\mathbf{w}_t^{(1)} + \eta_2\, e\, \mathbf{x}
-  = k\,\mathbf{w}_t^{(1)} + k\,\eta_1\, e\, \mathbf{x}
-  = k\,\mathbf{w}_{t+1}^{(1)},
-  \qquad
-  b_{t+1}^{(2)} = k\,b_t^{(1)} + k\,\eta_1\, e = k\,b_{t+1}^{(1)}.
-  $$
+porque $k > 0$ não muda o sinal ($kz \geq 0 \iff z \geq 0$, inclusive em $z = 0$). Então o erro
+$e = y - \hat{y}$ é o mesmo nas duas execuções, e
+
+$$
+\begin{aligned}
+\mathbf{w}_{t+1}^{(2)} &= k\,\mathbf{w}_t^{(1)} + \eta_2\, e\, \mathbf{x}
+= k\,\mathbf{w}_t^{(1)} + k\,\eta_1\, e\, \mathbf{x}
+= k\,\mathbf{w}_{t+1}^{(1)}, \\
+b_{t+1}^{(2)} &= k\,b_t^{(1)} + \eta_2\, e = k\,b_t^{(1)} + k\,\eta_1\, e = k\,b_{t+1}^{(1)}.
+\end{aligned}
+$$
 
 Consequências:
 
@@ -283,8 +294,8 @@ A mesma função `generate` do Exercise 1, com os parâmetros novos. São 1000 p
 ### B — Train, keeping the best weights
 
 A chamada é `train(X, y, w0, b0, eta=0.01, max_epochs=100, pocket=True)`: a mesma função do
-Exercise 1, sem nenhuma alteração no laço de treino. `pocket=True` liga a única adição, o bloco
-`if pocket:` em `code/perceptron.py`. Depois de cada atualização, ele mede a acurácia no dataset
+Exercise 1, com o mesmo código. `pocket=True` liga a única adição ao laço, o bloco `if pocket:` em
+`code/perceptron.py`. O resto do laço é idêntico ao do Exercise 1. Depois de cada atualização, ele mede a acurácia no dataset
 completo. Se ela passa da melhor já vista, copia $(\mathbf{w}, b)$ para o "bolso". O ponto de
 partida do bolso é o próprio $(\mathbf{w}_0, b_0)$, com a acurácia inicial. O sorteio deu
 $\mathbf{w}_0 = [0.01216,\ -0.00451]$.
@@ -319,7 +330,7 @@ teórico é $\Phi(0.577) = 71.8\%$). O pocket chega a **71.10%**, a 0.15 ponto d
 finais ficam em **50.15%**, o valor de um chute.
 
 **Onde a fronteira final fica.** A Figura 5 mostra: a reta final passa **fora** da nuvem, perto da
-origem, a $-b / \lVert \mathbf{w} \rVert = 0.96$ dela. O centro da nuvem, $(3.5,\ 3.5)$, fica a
+origem: a distância da reta até a origem é $-b / \lVert \mathbf{w} \rVert = 0.96$. O centro da nuvem, $(3.5,\ 3.5)$, fica a
 **3.98** da reta, do lado "classe 1". O modelo diz "classe 1" para **99.85%** dos pontos. Ele acerta
 os 1000 pontos da classe 1 e erra 997 dos 1000 pontos da classe 0. Já a reta do pocket fica a 5.08
 da origem. Ela corta a nuvem ao meio, quase sobre a reta ideal, que fica a 4.95.
@@ -342,8 +353,8 @@ A ordem das amostras decide para que lado ela sai no fim. Cada época termina co
 classe 1. Num falso negativo, a regra soma $0.01\,\mathbf{x}$ a $\mathbf{w}$ e $0.01$ a $b$. O
 escore desse ponto sobe $0.01\,(\lVert \mathbf{x} \rVert^2 + 1) \approx 0.27$, e o de pontos
 parecidos sobe quase o mesmo. Poucas atualizações bastam (a época inteira tem de 2 a 5) para a reta
-passar para trás da nuvem, e aí todos os pontos viram "classe 1". A partir desse momento, nenhum ponto da classe 1 erra mais, e a época acaba sem mexer
-na reta. Medi o outro lado do ciclo: no meio da época 100, depois dos 1000 pontos da classe 0, o
+sair da nuvem pelo lado da origem, e aí todos os pontos viram "classe 1". A partir desse momento,
+nenhum ponto da classe 1 erra mais, e a época acaba sem mexer na reta. Medi o outro lado do ciclo: no meio da época 100, depois dos 1000 pontos da classe 0, o
 modelo diz "classe 0" para **100%** dos pontos (acurácia 50.00%, reta a 20.3 da origem, além da
 nuvem do outro lado). A reta pula de um lado da nuvem para o outro duas vezes por época. Por isso
 só há de 2 a 5 atualizações por época, e por isso a acurácia no fim de cada época fica entre
@@ -352,12 +363,14 @@ só há de 2 a 5 atualizações por época, e por isso a acurácia no fim de cad
 **Figura 3 × Figura 6: o que o teorema garante.** O teorema de convergência do perceptron
 (Rosenblatt; prova de Novikoff) supõe que existe uma reta $(\mathbf{w}^*, b^*)$ que separa as
 classes com margem $\gamma > 0$: todo ponto fica a pelo menos $\gamma$ dela, do lado certo. Com
-$\lVert (\mathbf{x}, 1) \rVert \le R$, o perceptron faz no máximo $(R / \gamma)^2$ erros, em
-qualquer ordem de visita. Depois disso, nenhuma amostra erra mais, uma época passa sem atualização
-e o laço para. É o que a Figura 3 mostra: 73 erros no total, 100% na época 25 e parada na 26.
+$\lVert (\mathbf{x}, 1) \rVert \le R$ e partida de $\mathbf{w} = \mathbf{0}$, o perceptron faz no
+máximo $(R / \gamma)^2$ erros, em qualquer ordem de visita. Com um $\mathbf{w}_0$ pequeno, como
+aqui, o limite muda um pouco, mas continua finito. Depois disso, nenhuma amostra erra mais, uma
+época passa sem atualização e o laço para. É o que a Figura 3 mostra: 73 erros no total, 100% na época 25 e parada na 26.
 
 A hipótese que o Exercise 2 quebra é a **separabilidade linear**. Nenhuma reta acerta todos os
-pontos: a melhor erra cerca de 29% (71.25% de acerto). Sem reta separadora, não existe $\gamma > 0$
+pontos: as nuvens se misturam (Figura 4), e mesmo a reta de referência $x_1 + x_2 = 7$ erra 28.75%
+dos pontos. Sem reta separadora, não existe $\gamma > 0$
 e o limite $(R / \gamma)^2$ não existe. O teorema não garante nada. Na prática, o laço erra em
 todas as épocas (nunca menos de 2 atualizações), nunca para, e a curva da Figura 6 não se
 estabiliza. Só o pocket, que guarda o melhor em vez do último, sobe e fica.
@@ -385,9 +398,8 @@ diminui ao longo do treino.
 
 **Experimento extra: a ordem das amostras.** Com a mesma inicialização e a ordem embaralhada uma
 vez (`rng.permutation`, o último sorteio do relatório), a acurácia final vai a **63.95%** e o pocket
-a **71.85%**. Os blocos de uma classe só deixam de existir, e a reta final fica mais perto da nuvem: a 3.68 da
-origem, contra 0.96 na ordem da geração.
-Mesmo assim, a acurácia ao fim de cada época oscila entre 61.35% e 70.10% e nunca para de mudar. A
+a **71.85%**. Os blocos de uma classe só deixam de existir, e a reta final fica mais perto da
+nuvem: a 3.68 da origem, contra 0.96 na ordem da geração. Mesmo assim, a acurácia ao fim de cada época oscila entre 61.35% e 70.10% e nunca para de mudar. A
 ordem muda **o quanto** os pesos finais ficam ruins, mas não o fato de que eles não convergem.
 
 ## Results summary

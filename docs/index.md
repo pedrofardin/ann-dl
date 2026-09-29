@@ -43,7 +43,7 @@ Quem responde por este repositório. Os **exercícios são individuais**; a equi
 ### Exercícios — individuais
 
 - [x] [Data](exercises/data/index.md)
-- [ ] [Perceptron](exercises/perceptron/index.md)
+- [x] [Perceptron](exercises/perceptron/index.md)
 - [ ] [MLP](exercises/mlp/index.md)
 - [ ] [VAE](exercises/vae/index.md)
 
