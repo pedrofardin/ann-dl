@@ -8,3 +8,6 @@ __pycache__/
 /train.csv
 /test.csv
 /sample_submission.csv
+
+# MNIST baixado pelo exercício de VAE
+/data/
